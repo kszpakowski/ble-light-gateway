@@ -10,46 +10,40 @@ class BleLightController:
 
     _device = None
     _connection = None
+    _srv = None
 
     def __init__(self, device):
         self._device = device
 
-    # def __enter__(self):
-    #     pass
-    
-    # def __exit__(self, exception_type, exception_value, exception_traceback):
-        # pass
-
-    async def _get_service(self):
+    async def __aenter__(self):
         connection = await self._device.connect(timeout_ms=2000)
         self._connection = connection
-        srv = await connection.service(self._SRV_UUID)
-        return srv
+        self._srv = await connection.service(self._SRV_UUID)
+        return self
+    
+    async def __aexit__(self, exception_type, exception_value, exception_traceback):
+        await self._connection.disconnect()
 
     async def is_on(self):
-        srv = await self._get_service()
-        on_char = await srv.characteristic(self._ON_CHR_UUID)
+        on_char = await self._srv.characteristic(self._ON_CHR_UUID)
         state = await on_char.read(timeout_ms=500)
         val = struct.unpack("<b", state)[0]
         return val
 
     async def set_on(self, state):
-        srv = await self._get_service()
-        set_on_char = await srv.characteristic(self._SET_ON_CHR_UUID)
+        set_on_char = await self._srv.characteristic(self._SET_ON_CHR_UUID)
         val = struct.pack("<b", state)
         await set_on_char.write(val)
-        await self._connection.disconnect()
+       
 
     async def get_brightness(self):
-        srv = await self._get_service()
-        bightness_char = await srv.characteristic(self._BRIGHTNESS_CHR_UUID)
+        bightness_char = await self._srv.characteristic(self._BRIGHTNESS_CHR_UUID)
         state = await bightness_char.read(timeout_ms=500)
         val = struct.unpack("<b", state)[0]
         return val
 
     # brightness 0-100
     async def set_brightness(self, brightness):
-        srv = await self._get_service()
-        set_bightness_char = await srv.characteristic(self._SET_BRIGHTNESS_CHR_UUID)
+        set_bightness_char = await self._srv.characteristic(self._SET_BRIGHTNESS_CHR_UUID)
         val = struct.pack("<b", brightness)
         await set_bightness_char.write(val)
