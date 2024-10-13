@@ -1,7 +1,7 @@
 import bluetooth
 import struct
 
-class BleLightController:
+class BleLight:
     _SRV_UUID = bluetooth.UUID("cad6e164-de14-425f-8d19-f241b592a385")
     _ON_CHR_UUID = bluetooth.UUID("d00b8ba4-d8ce-42ff-92f2-b0d193c58da4")
     _SET_ON_CHR_UUID = bluetooth.UUID("19380250-824b-46c7-97a9-79761b8a27a7")
@@ -11,6 +11,7 @@ class BleLightController:
     _device = None
     _connection = None
     _srv = None
+    _alias = None
 
     def __init__(self, device):
         self._device = device
@@ -28,7 +29,7 @@ class BleLightController:
         on_char = await self._srv.characteristic(self._ON_CHR_UUID)
         state = await on_char.read(timeout_ms=500)
         val = struct.unpack("<b", state)[0]
-        return val
+        return bool(val)
 
     async def set_on(self, state):
         set_on_char = await self._srv.characteristic(self._SET_ON_CHR_UUID)
@@ -47,3 +48,17 @@ class BleLightController:
         set_bightness_char = await self._srv.characteristic(self._SET_BRIGHTNESS_CHR_UUID)
         val = struct.pack("<b", brightness)
         await set_bightness_char.write(val)
+
+    def set_alias(self, alias):
+        self._alias = alias
+
+    def get_id(self):
+        return self._device.addr.hex()
+
+    async def state(self):
+        return {
+            'id': self._device.addr.hex(),
+            'alias': self._alias,
+            'on': await self.is_on(),
+            'brightness': await self.get_brightness()
+        }

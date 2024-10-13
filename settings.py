@@ -21,3 +21,9 @@ class Settings:
     def save_settings(self, settings):
         with open(self.settings_file_name, "w") as f:
             json.dump(settings, f)
+
+    def save_setting(self, key, value):
+        settings = self._get_settings()
+        settings[key]=value
+        with open(self.settings_file_name, "w") as f:
+            json.dump(settings, f)
