@@ -8,12 +8,11 @@ class BleLight:
     _BRIGHTNESS_CHR_UUID = bluetooth.UUID("127cf8c9-b7fe-47e3-b2e0-3901b7988b00")
     _SET_BRIGHTNESS_CHR_UUID = bluetooth.UUID("66286dbf-e5e9-46d4-b300-a0ec456f677c")
 
-    _device = None
-    _connection = None
-    _srv = None
     _alias = None
 
     def __init__(self, device):
+        if not device:
+            return ValueError('Device is required')
         self._device = device
 
     async def __aenter__(self):
