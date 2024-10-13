@@ -18,26 +18,27 @@ names = {
 
 controllers: dict[str, BleLightController] = {}
 
-async def add_controller(id, device):
+async def add_controller(device):
+    id = device.addr.hex()
     if not id in controllers:
         print(f"Adding controller {id} - {names[id]}")
         ctrl = BleLightController(device)
         controllers.setdefault(id, ctrl)
 
-async def scan_task():
-    while True:
-        async with aioble.scan(
-            duration_ms=10000, interval_us=30000, window_us=30000, active=True
-        ) as scanner:
-            async for result in scanner:
-                if "pico-light-ble" == result.name():
-                    try:
-                        await add_controller(result.device.addr.hex(), result.device)
-                    except asyncio.TimeoutError:
-                        print("Timeout")
-                    except Exception as e:
-                        print("Error", e)
-
+@app.post("/scan")
+async def sync_handler(request):
+    duration = request.args.get('duration', 1500)
+    async with aioble.scan(
+                duration_ms=duration, interval_us=30000, window_us=30000, active=True
+            ) as scanner:
+                async for result in scanner:
+                    if "pico-light-ble" == result.name():
+                        try:
+                            await add_controller(result.device)
+                        except asyncio.TimeoutError:
+                            print("Timeout")
+                        except Exception as e:
+                            print("Error", e)
 
 @app.get("/controllers")
 async def state_handler(request):
@@ -59,12 +60,4 @@ async def update_handler(request, id):
             brightness = data["brightness"]
             await c.set_brightness(brightness)
         
-async def server_task():
-    app.run(debug=True)
-
-async def main():
-    t1 = asyncio.create_task(scan_task())
-    t2 = asyncio.create_task(server_task())
-    await asyncio.gather(t1,t2)
-
-asyncio.run(main())
+app.run(debug=True)
