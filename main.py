@@ -10,11 +10,6 @@ connect_to_network(wifi_settings.get("ssid"), wifi_settings.get("pass"))
 
 app = Microdot()
 
-names = {
-    "28cdc100011e": "Banana",
-    "28cdc1000162": "Jaeger",
-}
-
 alias_settings = Settings("aliases")
 
 controllers: dict[str, BleLight] = {}

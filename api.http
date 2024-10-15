@@ -1,0 +1,28 @@
+###
+GET http://{{host}}/controllers
+
+###
+
+POST http://{{host}}/scan
+
+### Jager
+
+PUT http://{{host}}/controllers/28cdc1000162
+Content-Type: application/json
+
+{
+    "alias": "Jager",
+    "on": false,
+    "brightness": 85
+}
+
+### Banana
+
+PUT http://{{host}}/controllers/28cdc100011e
+Content-Type: application/json
+
+{
+    "alias": "Banan",
+    "on": false,
+    "brightness": 50
+}
